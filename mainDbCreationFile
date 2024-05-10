@@ -1,0 +1,163 @@
+
+-- Authors: Haedon Kaufman and Madonna Matta
+-- Group 118
+
+SET FOREIGN_KEY_CHECKS=0;
+SET AUTOCOMMIT = 0;
+
+CREATE OR REPLACE TABLE Venues (
+    venue_id INT(11) NOT NULL AUTO_INCREMENT,
+    name VARCHAR(200) NOT NULL,
+    venue_location VARCHAR(299) NOT NULL,
+    capacity INT(11) NOT NULL,
+    PRIMARY KEY (venue_id)
+);
+
+CREATE OR REPLACE TABLE Performers (
+    performer_id INT(11) AUTO_INCREMENT,
+    name VARCHAR(200) NOT NULL,
+    genre VARCHAR(100) NOT NULL,
+    biography TEXT,
+    website VARCHAR(200),
+    PRIMARY KEY (performer_id)
+);
+
+CREATE OR REPLACE TABLE Events (
+    event_id INT(11) NOT NULL AUTO_INCREMENT,
+    name VARCHAR(200) NOT NULL,
+    date DATE NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    total_attendees INT(11) NOT NULL DEFAULT 0,
+    venue_id INT(11) NOT NULL,
+    PRIMARY KEY (event_id),
+    FOREIGN KEY (venue_id) REFERENCES Venues(venue_id) ON DELETE CASCADE
+);
+
+CREATE OR REPLACE TABLE Customers (
+    customer_id INT(11) NOT NULL AUTO_INCREMENT,
+    first_name VARCHAR(200) NOT NULL,
+    last_name VARCHAR(200) NOT NULL,
+    email VARCHAR(200) NOT NULL,
+    password VARCHAR(200) NOT NULL,
+    PRIMARY KEY (customer_id)
+);
+
+CREATE OR REPLACE TABLE Ticket_Sales (
+    ticket_sales_id INT(11) AUTO_INCREMENT,
+    customer_id INT(11) NOT NULL,
+    event_id INT(11) NOT NULL,
+    number_of_tickets INT(11) NOT NULL,
+    date_of_purchase DATETIME NOT NULL,
+    total_cost DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (ticket_sales_id),
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE
+);
+
+CREATE OR REPLACE TABLE Events_Performers (
+    event_id INT(11) NOT NULL,
+    performer_id INT(11) NOT NULL,
+    PRIMARY KEY (Event_ID, Performer_ID),
+    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE,
+    FOREIGN KEY (performer_id) REFERENCES Performers(performer_id) ON DELETE CASCADE
+);
+
+INSERT INTO Customers (first_name, last_name, email, password) VALUES
+('Adam', 'Smith', 'adamsmith@dummyemail.com', 'password123'),
+('Jane', 'Doe', 'j.doe@dummyemail.com', '123password'),
+('Bob', 'Williams', 'bobwilliams@dummyemail.com', '12345');
+ 
+ 
+INSERT INTO Venues (name, venue_location, capacity) VALUES
+('Live Oak Music Hall', '123 Main St.', 5000),
+('Verizons Stadium', '234 Crocket Ln.', 12500),
+('Banana Bar Music Hall', '345 2nd St.', 3500);
+ 
+
+INSERT INTO Events (name, date, price, venue_id, total_attendees)
+VALUES (
+    'Rock Concert',
+    '2024-05-09',
+    75,
+    (SELECT venue_id FROM Venues WHERE name = 'Live Oak Music Hall'),
+    3400
+),
+(
+    'Showcase',
+    '2024-07-09',
+    125,
+    (SELECT venue_id FROM Venues WHERE name = 'Verizons Stadium'),
+    9200
+),
+(
+    'Pop Concert',
+    '2024-08-05',
+    50,
+    (SELECT venue_id FROM Venues WHERE name = 'Banana Bar Music Hall'),
+    1200
+);
+ 
+ 
+ 
+INSERT INTO Ticket_Sales (customer_id, event_id, number_of_tickets, date_of_purchase, total_cost)
+VALUES
+(
+    (SELECT customer_id FROM Customers WHERE first_name = 'Adam' AND last_name = 'Smith'),
+    (SELECT event_id FROM Events WHERE name = 'Rock Concert'),
+    2,
+    '2024-05-01',
+    150
+),
+(
+    (SELECT customer_id FROM Customers WHERE first_name = 'Jane' AND last_name = 'Doe'),
+    (SELECT event_id FROM Events WHERE name = 'Showcase'),
+    1,
+    '2024-05-25',
+    125
+),
+(
+    (SELECT customer_id FROM Customers WHERE first_name = 'Bob' AND last_name = 'Williams'),
+    (SELECT event_id FROM Events WHERE name = 'Pop Concert'),
+    2,
+    '2024-06-13',
+    100
+);
+
+INSERT INTO Performers (name, genre, biography, website)
+VALUES (
+    "Hozier",
+    "Rock",
+    "Andrew John Hozier-Byrne (born 17 March 1990), known professionally as Hozier is an Irish musician, singer and songwriter.",
+    "https://hozier.com/"
+),
+(
+    "UCLA Showcase",
+    "Student Showcase",
+    "The UCLA music departs welcomes the city of Los Angeles to a unique production of our finest musicians tonight!",
+    "UCLAmusic.com"
+),
+(
+    "Selena Gomez",
+    "Pop",
+    "Selena Gomez is an American singer, actress, and producer, known for her musical hits and roles in TV shows and films, as well as her work as a mental health advocate.",
+    "https://www.selenagomez.com/"
+);
+            
+
+INSERT INTO Events_Performers (event_id, performer_id)
+VALUES (
+    (SELECT event_id FROM Events WHERE name = 'Rock Concert'),
+    (SELECT performer_id FROM Performers WHERE name = 'Hozier')
+),
+(
+    (SELECT event_id FROM Events WHERE name = 'Showcase'),
+    (SELECT performer_id FROM Performers WHERE name = 'UCLA Showcase')
+),
+(
+    (SELECT event_id FROM Events WHERE name = 'Pop Concert'),
+    (SELECT performer_id FROM Performers WHERE name = 'Selena Gomez')
+);
+
+SET FOREIGN_KEY_CHECKS=1;
+COMMIT;
+
